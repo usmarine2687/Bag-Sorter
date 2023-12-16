@@ -2,10 +2,11 @@ require('ImGui')
 --local Write = require('Scriber.Write')
 local mq = require('mq') 
 local Open, ShowUI = true, true -- GUI Control variables
-local type = {"None", "Tradeskill", "Collectible", "No trade", "Attuneable","Quest", "Magic", "Food", "Drink"} --Flags for item types
+local type = {"None", "Tradeskill", "Collectible", "No trade", "Attuneable","Quest", "Magic", "Food", "Drink", "Arrow"} --Flags for item types
 local bools = {} -- Dummy storage
 local TopInvSlot = 22 + mq.TLO.Me.NumBagSlots() --Top Inventory Slot
 local inv_bag_types = {"Selection"}
+
 
 
 
@@ -20,7 +21,7 @@ end
 
 for pack = 23, TopInvSlot do
 	local item = mq.TLO.Me.Inventory(pack).Type()
-	local storage = {"BackPack", "Small Bag", "Large Chest"}
+	local storage = {"BackPack", "Small Bag", "Large Chest", "Merchant", "Mixing", "Tinkering", "Backpack"}
 	if TableCheck(item, storage) then
 		inv_bag_types[pack] = table.insert(inv_bag_types, "Bag")
 	elseif item == "Collectible Bag" then
@@ -39,17 +40,17 @@ local function BagSortGUI()
 		ImGui.SetWindowSize("MainWindow", 800, 500, ImGuiCond.Once)
 		Open, ShowUI = ImGui.Begin('Bag Sorter', Open)
 		if ShowUI then
+			local TEXT_BASE_Height = ImGui.GetTextLineHeightWithSpacing()
 			local column_names = inv_bag_types
 			local columns_count = #column_names
 			local rows_count = #type
 			local table_flags = bit32.bor(ImGuiTableFlags.SizingFixedFit, ImGuiTableFlags.ScrollX, ImGuiTableFlags.ScrollY, ImGuiTableFlags.Resizable, ImGuiTableFlags.RowBg, ImGuiTableFlags.BordersOuter, ImGuiTableFlags.BordersV, ImGuiTableFlags.BordersH)
 			local frozen_cols = 1
 			local frozen_rows = 1
-			local row_bg_type = 1
-			local row_bg_target = 1
+			local buttton_disabled = false
 			
 
-			if ImGui.BeginTable("Item Type Selection", columns_count, table_flags) then
+			if ImGui.BeginTable("Item Type Selection", columns_count, table_flags, 0.0, TEXT_BASE_Height * 12) then
 				ImGui.TableSetupColumn(column_names[1])
 				for n = 2, columns_count do
 					ImGui.TableSetupColumn(column_names[n], ImGuiTableColumnFlags.WidthFixed)
@@ -60,23 +61,50 @@ local function BagSortGUI()
 				for row = 1, rows_count do
 					ImGui.PushID(row)
 					ImGui.TableNextRow()
-					if row_bg_type ~= 0 then
-						if row_bg_type == 1 then
-							ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target, 0.7, 0.3, 0.3, 0.65)
-						else
-							ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0 + row_bg_target, 0.2 + row * .1, 0.2, 0.2, 0.65)
-						end
-					end
-					ImGui.TableSetColumnIndex(0)
+					--ImGui.TableSetColumnIndex(0)  Column index messed up table flags. may be applicable later
+					ImGui.TableNextColumn()
 					ImGui.AlignTextToFramePadding()
 					ImGui.Text(type[row])
-					for column = 1, columns_count do
-						if (ImGui.TableSetColumnIndex(column)) then
-					
-							ImGui.PushID(column)
+					for column = 2, columns_count do
+						--if (ImGui.TableSetColumnIndex(column)) then
+						ImGui.TableNextColumn()
+						ImGui.PushID(column)
+						if column_names[column] == "TS Bag" then
+							if type[row] == "Tradeskill" then
+								buttton_disabled = false
+							else
+								buttton_disabled = true
+							end
+							ImGui.BeginDisabled(buttton_disabled)
 							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
-							ImGui.PopID()
+							ImGui.EndDisabled()
+						elseif column_names[column] == "Col Bag" then
+							if type[row] == "Collectible" then
+								buttton_disabled = false
+							else
+								buttton_disabled = true
+							end
+							ImGui.BeginDisabled(buttton_disabled)
+							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
+							ImGui.EndDisabled()
+						elseif column_names[column] == "Quiver" then
+							if type[row] == "Arrow" then
+								buttton_disabled = false
+							else
+								buttton_disabled = true
+							end
+						elseif column_names[column] == "None" then
+							buttton_disabled = true
+							ImGui.BeginDisabled(buttton_disabled)
+							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
+							ImGui.EndDisabled()
+						else
+							buttton_disabled = false
+							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
 						end
+						ImGui.PopID()
+						
+						--end
 					end
 					ImGui.PopID()
 				end
@@ -87,7 +115,7 @@ local function BagSortGUI()
 		ImGui.End()
 	end
 end
-mq.imgui.init('ScriberGUI', BagSortGUI)
+mq.imgui.init('BagSortGUI', BagSortGUI)
 
 while true do
 	mq.delay(100)
