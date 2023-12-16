@@ -49,6 +49,7 @@ local function BagSortGUI()
 			local frozen_rows = 1
 			local buttton_disabled = false
 			
+			
 
 			if ImGui.BeginTable("Item Type Selection", columns_count, table_flags, 0.0, TEXT_BASE_Height * 12) then
 				ImGui.TableSetupColumn(column_names[1])
@@ -67,6 +68,7 @@ local function BagSortGUI()
 					ImGui.Text(type[row])
 					for column = 2, columns_count do
 						--if (ImGui.TableSetColumnIndex(column)) then
+						local index = row * columns_count + column
 						ImGui.TableNextColumn()
 						ImGui.PushID(column)
 						if column_names[column] == "TS Bag" then
@@ -76,7 +78,7 @@ local function BagSortGUI()
 								buttton_disabled = true
 							end
 							ImGui.BeginDisabled(buttton_disabled)
-							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
+							bools[index] = ImGui.Checkbox("", bools[index])
 							ImGui.EndDisabled()
 						elseif column_names[column] == "Col Bag" then
 							if type[row] == "Collectible" then
@@ -85,7 +87,7 @@ local function BagSortGUI()
 								buttton_disabled = true
 							end
 							ImGui.BeginDisabled(buttton_disabled)
-							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
+							bools[index] = ImGui.Checkbox("", bools[index])
 							ImGui.EndDisabled()
 						elseif column_names[column] == "Quiver" then
 							if type[row] == "Arrow" then
@@ -96,11 +98,11 @@ local function BagSortGUI()
 						elseif column_names[column] == "None" then
 							buttton_disabled = true
 							ImGui.BeginDisabled(buttton_disabled)
-							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
+							bools[index] = ImGui.Checkbox("", bools[index])
 							ImGui.EndDisabled()
 						else
 							buttton_disabled = false
-							bools[row * columns_count + column] = ImGui.Checkbox("", bools[row * columns_count + column])
+							bools[index] = ImGui.Checkbox("", bools[index])
 						end
 						ImGui.PopID()
 						
@@ -110,6 +112,7 @@ local function BagSortGUI()
 				end
 			ImGui.EndTable()
 			end
+			--Add button to start sorting function
             
 		end
 		ImGui.End()
